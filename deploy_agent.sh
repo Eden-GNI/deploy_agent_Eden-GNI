@@ -1,4 +1,9 @@
 #!/bin/bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEMPLATES_DIR="$SCRIPT_DIR/templates"
+PROJECT_NAME=""
+
 PS3='Select feature to use: '
 features=("Deploy" "Run" "Archive" "Exit")
 select ftr in "${features[@]}"; do
