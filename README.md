@@ -1,2 +1,4 @@
 # deploy_agent_Eden-GNI
-Summative things
+Summative Assignment
+Repository deploy_agent_created_Eden-GNI created
+Templates directory created and source files (attendance_checker.py, assets.cvs, and config.json) have been added to it.
