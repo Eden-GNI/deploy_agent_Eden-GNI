@@ -15,7 +15,7 @@ preflight_check() {
 }
 
 project_naming() {
-	read -p "Enter directory name" input
+	read -p "Enter directory name: " input
 	dir="attendance_tracker_${input}"
 
 	if [ -d "$dir" ]; then
@@ -95,6 +95,25 @@ build_roster() {
     echo "Roster built with $count students. total_sessions set to $total."
 }
 
+update_thresholds() {
+    local config="$project_dir/Helpers/config.json"
+    local answer warn fail
+
+    read -p "Update alert thresholds? (y/n): " answer
+    [[ "$answer" =~ ^[Yy] ]] || return 0
+
+    read -p "New warning threshold (default 75): " warn
+    read -p "New failure threshold (default 50): " fail
+
+    if [[ ! "$warn" =~ ^[0-9]+$ || ! "$fail" =~ ^[0-9]+$ ]]; then
+        echo "Invalid input: thresholds must be numbers. Keeping defaults."
+        return 0
+    fi
+
+    sed -i -e "s/\(\"warning\": *\)[0-9]\+/\1$warn/" \
+           -e "s/\(\"failure\": *\)[0-9]\+/\1$fail/" "$config"
+    echo "Thresholds updated: warning=$warn, failure=$fail"
+}
 deploy() {
 	preflight_check
 	project_naming
@@ -125,10 +144,22 @@ deploy() {
 	 echo "Error: File does not exist."
 	fi
 
+	update_thresholds
+	run
 }
 
 run() {
-	 echo "Not up yet"
+	read -p "Enter directory name: " input
+	PROJECT_NAME="$input"
+	dir="attendance_tracker_${input}"
+
+	if [ -d "$dir" ]; then
+		cd "$dir"
+		python3 "attendance_checker.py"
+	else
+		echo "Directory '$dir' does not exist. Check if you have deployed the application."
+		return 1
+	fi
 }
 
 archive() {
