@@ -10,3 +10,6 @@ Added preject_naming function to prompt user on creating a directory as well as 
 Added create_structure function to create the structure of attendance tracker folder
 Created functions for deploy, run, archive, although for now only place holder inputs are in it
 updated interactive menu to run the funcions deploy, run, archive (although empty for now)
+Copy commands to transport template files in new directories created from the shell script
+Option A and Option B have been implemented to the build_roster function
+permissions for the files have been inputed as well as confirmation messages for each file

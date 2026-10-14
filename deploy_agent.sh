@@ -41,15 +41,94 @@ create_structure() {
     echo "Created project structure at $PROJECT_DIR"
 }
 
+build_roster() {
+    local project_dir="attendance_tracker_${PROJECT_NAME}"
+    local roster="$project_dir/Helpers/assets.csv"
+    local config="$project_dir/Helpers/config.json"
+    local template="$SCRIPT_DIR/templates/assets.csv"
+    local choice count total available
+
+    echo "How do you want to build the roster?"
+    select choice in "Copy from template" "Generate fresh roster"; do
+        case "$REPLY" in
+            1|2) break ;;
+            *) echo "Invalid choice, enter 1 or 2." ;;
+        esac
+    done
+
+        while true; do
+        read -rp "How many students? " count
+        [[ "$count" =~ ^[1-9][0-9]*$ ]] && break
+        echo "Please enter a positive whole number."
+    done
+
+    if [ "$REPLY" -eq 1 ]; then
+        available=$(( $(grep -c '' "$template") - 1 ))
+        if [ "$count" -gt "$available" ]; then
+            echo "Template only has $available students; using $available."
+            count="$available"
+        fi
+        head -n $(( count + 1 )) "$template" > "$roster"
+        total=5
+    else
+        local names=("Alice Johnson" "Bob Smith" "Carol White" "David Brown" "Emma Davis"
+                     "Frank Miller" "Grace Wilson" "Henry Moore" "Ivy Taylor" "Jack Anderson"
+                     "Karen Thomas" "Leo Jackson")
+        local emails=("alice@example.com" "bob@example.com" "carol@example.com" "david@example.com"
+                      "emma@example.com" "frank@example.com" "grace@example.com" "henry@example.com"
+                      "ivy@example.com" "jack@example.com" "karen@example.com" "leo@example.com")
+
+        if [ "$count" -gt "${#names[@]}" ]; then
+            echo "Only ${#names[@]} sample students available; using ${#names[@]}."
+            count="${#names[@]}"
+        fi
+
+        echo "Email,Names,Attendance Count,Absence Count" > "$roster"
+        for (( i=0; i<count; i++ )); do
+            echo "${emails[i]},${names[i]},0,0" >> "$roster"
+        done
+        total=1
+    fi
+
+    sed -i "s/\(\"total_sessions\": *\)[0-9]*/\1${total}/" "$config"
+
+    echo "Roster built with $count students. total_sessions set to $total."
+}
+
 deploy() {
 	preflight_check
 	project_naming
 	create_structure
 
+	cp "$TEMPLATES_DIR/attendance_checker.py" "$PROJECT_DIR/"
+	cp "$TEMPLATES_DIR/config.json" "$PROJECT_DIR/Helpers"
+
+	build_roster
+
+	chmod +x "$PROJECT_DIR/attendance_checker.py"
+	chmod 600 "$PROJECT_DIR/Helpers/config.json"
+
+	if [ -x "$PROJECT_DIR/attendance_checker.py" ]; then
+	 echo "'attendance_checker.py' has execute permission"
+	else
+	 echo "Execution is not allowed on 'attendance_checker.py' file"
+	fi
+
+	if [ -f "$PROJECT_DIR/Helpers/config.json" ]; then
+	  perms=$(stat -c "%a" "$PROJECT_DIR/Helpers/config.json")
+	  if [ "$perms" = "600" ] || [ "$perms" = "0600" ]; then
+	    echo "File 'config.json' permissions are exactly 600."
+	  else
+	    echo "File 'config.json' permissions are $perms, not 600!"
+	  fi
+	else
+	 echo "Error: File does not exist."
+	fi
+
 }
 
 run() {
-	echo "Not up yet"
+	 echo "Not up yet"
 }
 
 archive() {
