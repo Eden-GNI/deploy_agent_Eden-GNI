@@ -37,6 +37,7 @@ preflight_check() {
 
 project_naming() {
 	read -p "Enter directory name: " input
+	PROJECT_DIR="$SCRIPT_DIR/attendance_tracker_${input}"
 	dir="attendance_tracker_${input}"
 
 	if [ -d "$dir" ]; then
@@ -54,7 +55,6 @@ project_naming() {
     fi
 
     PROJECT_NAME="$input"
-    PROJECT_DIR="$SCRIPT_DIR/attendance_tracker_${PROJECT_NAME}"
 }
 
 create_structure() {
@@ -117,7 +117,7 @@ build_roster() {
 }
 
 update_thresholds() {
-    local config="$project_dir/Helpers/config.json"
+    local config="$PROJECT_DIR/Helpers/config.json"
     local answer warn fail
 
     read -p "Update alert thresholds? (y/n): " answer
