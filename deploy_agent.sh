@@ -13,7 +13,7 @@ handle_system() {
 
 	local project_dir="attendance_tracker_${PROJECT_NAME}"
 
-	if [ -n "$PROJECT_NAME" ] && [ -d "$project_dir" ]; then
+	if [ -n "$PROJECT_NAME" ] && [ -d "$PROJECT_DIR" ]; then
 		zip -r "${project_dir}_archive.zip" "$project_dir" > /dev/null
 		echo "Partial project archived to ${project_dir}_archive.zip"
 		rm -rf "$project_dir"
