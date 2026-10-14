@@ -19,4 +19,6 @@ Option A and Option B have been implemented to the build_roster function.
 Permissions for the files have been inputed as well as confirmation messages for each file.
 Update_thresholds function added for confirmation of previous functions running properly.
 Run function added to change directories to created directory and run 'attendance_checker.py' file with python3.
-
+A handle_system function has been added for when the signals ctrl+c and ctrl+z are used.
+When the signals are used during the deployment stage, a message will be sent to the user that the deployment was interrupted.
+As well as checking if there is anything that needs to be archived before exiting cleanly.

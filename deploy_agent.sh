@@ -4,6 +4,27 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATES_DIR="$SCRIPT_DIR/templates"
 PROJECT_NAME=""
 PROJECT_DIR=""
+START_DIR=$(pwd)
+
+handle_system() {
+	echo "Deployment interrupted."
+
+	cd "$START_DIR" || exit 1
+
+	local project_dir="attendance_tracker_${PROJECT_NAME}"
+
+	if [ -n "$PROJECT_NAME" ] && [ -d "$project_dir" ]; then
+		zip -r "${project_dir}_archive.zip" "$project_dir" > /dev/null
+		echo "Partial project archived to ${project_dir}_archive.zip"
+		rm -rf "$project_dir"
+		echo "Incomplete project directory removed."
+	else
+		echo "No project directory exists yet, nothing to archive."
+	fi
+
+	echo "Exiting."
+	exit 1
+}
 
 preflight_check() {
 	if command -v python3 &> /dev/null && command -v zip &> /dev/null; then
@@ -115,6 +136,7 @@ update_thresholds() {
     echo "Thresholds updated: warning=$warn, failure=$fail"
 }
 deploy() {
+	trap handle_system SIGINT SIGTSTP
 	preflight_check
 	project_naming
 	create_structure
@@ -145,6 +167,7 @@ deploy() {
 	fi
 
 	update_thresholds
+	trap - SIGINT SIGTSTP
 	run
 }
 
@@ -163,7 +186,39 @@ run() {
 }
 
 archive() {
-	echo "Not up yet"
+	read -rp "Enter the project name (the part after attendance_tracker_): " name
+	local project_dir="attendance_tracker_${name}"
+
+	if [ -z "$name" ] || [ ! -d "$project_dir" ]; then
+		echo "Error: project directory '$project_dir' not found." >&2
+		return 1
+	fi
+
+	local timestamp
+	timestamp=$(date +%Y%m%d_%H%M%S)
+	local archived=0
+
+	for log in attendance absent; do
+		local src="${project_dir}/reports/${log}.log"
+		local dest_dir="${project_dir}/archives/${log}"
+		local dest="${dest_dir}/${log}_${timestamp}.log"
+
+	if [ -f "$src" ]; then
+		mkdir -p "$dest_dir"
+		if mv "$src" "$dest"; then
+		  echo "Archived: ${log}.log -> ${dest}"
+		  archived=$((archived + 1))
+		else
+		  echo "Error: could not archive ${src}" >&2
+		fi
+	else
+		echo "Skipped: ${src} does not exist."
+	fi
+	done
+
+	if [ "$archived" -eq 0 ]; then
+		echo "No logs were archived."
+	fi
 }
 
 PS3='Select feature to use: '
